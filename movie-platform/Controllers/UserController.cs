@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
@@ -12,6 +13,7 @@ namespace movie_platform.Controllers
     public class UserController : Controller
     {
         private readonly MovieplatformdbContext _context;
+        private static int _nextId = 1;
 
         public UserController(MovieplatformdbContext context)
         {
@@ -49,12 +51,13 @@ namespace movie_platform.Controllers
         }
 
         // POST: User/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,UserName,Password")] User user)
+        public async Task<IActionResult> Create([Bind("UserName,Password")] User user)
         {
+            user.Id = _nextId++;
+            Debug.WriteLine(user);
+
             if (ModelState.IsValid)
             {
                 _context.Add(user);
@@ -81,8 +84,6 @@ namespace movie_platform.Controllers
         }
 
         // POST: User/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("Id,UserName,Password")] User user)

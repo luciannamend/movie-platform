@@ -1,7 +1,13 @@
+using Microsoft.EntityFrameworkCore;
+using movie_platform.Models;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+
+builder.Services.AddDbContext<MovieplatformdbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("Connection2RDS")));
 
 var app = builder.Build();
 
