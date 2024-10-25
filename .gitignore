@@ -363,3 +363,4 @@ MigrationBackup/
 FodyWeavers.xsd
 /movie-platform/Startup.cs
 /movie-platform/appsettings.Development.json
+/movie-platform/Models/MovieplatformdbContext.cs
