@@ -26,7 +26,7 @@ namespace movie_platform.Controllers
             return View(await _context.Users.ToListAsync());
         }
 
-        // GET: User/Details/5
+        // GET: User/Details/{id}
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -56,14 +56,22 @@ namespace movie_platform.Controllers
         public async Task<IActionResult> Create([Bind("UserName,Password")] User user)
         {
             user.Id = _nextId++;
-            Debug.WriteLine(user);
 
             if (ModelState.IsValid)
             {
                 _context.Add(user);
                 await _context.SaveChangesAsync();
+
+                // if user is not logged in, redirect to login page
+                if (HttpContext.Session.GetString("UserName") == null)
+                {
+                    return RedirectToAction("Login", "User");
+                }
                 return RedirectToAction(nameof(Index));
             }
+
+            
+
             return View(user);
         }
 
@@ -148,6 +156,52 @@ namespace movie_platform.Controllers
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
+
+        // GET: /Login
+        [HttpGet]
+        [Route("/Login")]
+        public IActionResult Login()
+        {
+            return View();
+        }
+
+        // POST: /Login
+        [HttpPost, ActionName("Login")]
+        [Route("/Login")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Login([Bind("UserName,Password")] LoginView login)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(login);
+            }
+
+            // Check if user exists with matching username and password
+            var user = await _context.Users
+                .FirstOrDefaultAsync(u => u.UserName == login.UserName && u.Password == login.Password);
+
+            if (user == null)
+            {
+                ModelState.AddModelError(string.Empty, "Invalid username or password.");
+                return View(login);
+            }
+            Debug.WriteLine($"Route for {nameof(Index)}: {Request.Path}");
+
+            // Set a session variable to indicate user is logged in
+            HttpContext.Session.SetString("UserName", user.UserName);
+
+            // Redirect to user pg if login is successful 
+            return RedirectToAction("Index", "Home");
+        }
+
+        // GET: /Logout
+        [Route("/Logout")]
+        public IActionResult Logout()
+        {
+            HttpContext.Session.Remove("UserName"); // Remove the session variable
+            return RedirectToAction("Index", "Home"); // Redirect to home or login page
+        }
+
 
         private bool UserExists(int id)
         {

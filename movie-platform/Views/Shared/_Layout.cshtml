@@ -6,7 +6,7 @@
     <title>@ViewData["Title"] - Movie Platform</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/movie_platform.styles.css" asp-append-version="true" />
+    @* <link rel="stylesheet" href="~/movie_platform.styles.css" asp-append-version="true" /> *@
 </head>
 <body>
     <header>
@@ -22,14 +22,27 @@
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
                         </li>
+                        @if (Context.Session.GetString("UserName") != null)  // Check if the user is logged in to show user tab
+                        {
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="User" asp-controller="User" asp-action="Index">User</a>
                         </li>
+                        }
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
                         </li>
                     </ul>
                 </div>
+                @if (Context.Session.GetString("UserName") == null)
+                {
+                    <a class="navbar-brand" asp-area="" asp-controller="User" asp-action="Create">Register</a>
+
+                    <a class="navbar-brand" asp-area="" asp-controller="Login" asp-action="Index">Login</a>
+                }
+                else
+                {
+                    <a class="navbar-brand" asp-area="" asp-controller="Logout" asp-action="Index">Logout</a>
+                }
             </div>
         </nav>
     </header>
