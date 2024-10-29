@@ -57,7 +57,7 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var dbOperation = scope.ServiceProvider.GetRequiredService<DynamoDBMovieOperation>();
-    await dbOperation.CreateMovieTableAsync();
+    await dbOperation.CreateMovieTableWithIndexesAsync();
 }
 
 // Configure the HTTP request pipeline
