@@ -169,7 +169,7 @@ namespace movie_platform.Controllers
         [HttpPost, ActionName("Login")]
         [Route("/Login")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Login([Bind("UserName,Password")] LoginView login)
+        public async Task<IActionResult> Login([Bind("UserName,Password")] Login login)
         {
             if (!ModelState.IsValid)
             {

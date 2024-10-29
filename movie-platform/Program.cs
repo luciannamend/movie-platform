@@ -1,5 +1,9 @@
+using Amazon.DynamoDBv2.DataModel;
+using Amazon.DynamoDBv2;
+using Amazon.Runtime;
 using Microsoft.EntityFrameworkCore;
 using movie_platform.Models;
+using movie_platform.Controllers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -7,6 +11,37 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<MovieplatformdbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("Connection2RDS")));
+
+// Configure DynamoDB
+builder.Services.AddSingleton<IAmazonDynamoDB>(sp =>
+{
+    var config = builder.Configuration;
+    var awsCredentials = new BasicAWSCredentials(
+        config["AWS:AccessKey"],
+        config["AWS:SecretKey"]
+    );
+    var dynamoConfig = new AmazonDynamoDBConfig
+    {
+        RegionEndpoint = Amazon.RegionEndpoint.GetBySystemName(config["AWS:Region"])
+    };
+
+    return new AmazonDynamoDBClient(awsCredentials, dynamoConfig);
+});
+
+// Add DynamoDB context as a singleton service
+builder.Services.AddSingleton<IDynamoDBContext, DynamoDBContext>(sp =>
+{
+    var dynamoDbClient = sp.GetRequiredService<IAmazonDynamoDB>();
+    return new DynamoDBContext(dynamoDbClient);
+});
+
+// Add DynamoDB context and DynamoDBMovieOperation as singleton services
+builder.Services.AddSingleton<IDynamoDBContext, DynamoDBContext>(sp =>
+{
+    var dynamoDbClient = sp.GetRequiredService<IAmazonDynamoDB>();
+    return new DynamoDBContext(dynamoDbClient);
+});
+builder.Services.AddSingleton<DynamoDBMovieOperation>();
 
 // Add session services
 builder.Services.AddSession(options =>
@@ -17,6 +52,13 @@ builder.Services.AddSession(options =>
 });
 
 var app = builder.Build();
+
+// Run CreateMovieTableAsync during application startup
+using (var scope = app.Services.CreateScope())
+{
+    var dbOperation = scope.ServiceProvider.GetRequiredService<DynamoDBMovieOperation>();
+    await dbOperation.CreateMovieTableAsync();
+}
 
 // Configure the HTTP request pipeline
 if (!app.Environment.IsDevelopment())

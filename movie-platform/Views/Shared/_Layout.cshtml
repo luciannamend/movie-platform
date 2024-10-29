@@ -22,10 +22,13 @@
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
                         </li>
-                        @if (Context.Session.GetString("UserName") != null)  // Check if the user is logged in to show user tab
+                        @if (Context.Session.GetString("UserName") != null)  // If user is logges in, show the User tab
                         {
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="User" asp-controller="User" asp-action="Index">User</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="Movie" asp-controller="Movie" asp-action="Index">Movie</a>
                         </li>
                         }
                         <li class="nav-item">

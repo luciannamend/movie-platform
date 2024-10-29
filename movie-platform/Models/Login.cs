@@ -2,7 +2,7 @@
 
 namespace movie_platform.Models
 {
-    public class LoginView
+    public class Login
     {
         [Required]
         public string UserName { get; set; }

@@ -1,0 +1,25 @@
+﻿@model IEnumerable<movie_platform.Models.Movie>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Title</th>
+            <th>Genre</th>
+            <th>ReleaseDate</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.Title</td>
+                <td>@item.Genre</td>
+                <td>@item.ReleaseDate</td>
+                <td>
+                    <a asp-action="Details" asp-route-id="@item.MovieId">Details</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
