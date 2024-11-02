@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Amazon.DynamoDBv2.DataModel;
@@ -44,56 +45,43 @@ namespace movie_platform.Controllers
             return View(movies);
         }
 
-        // GET: Movie/AddMovie
+        // GET: Movie/Add
+        [Route("Movie/Add")]
         public IActionResult AddMovie()
         {
             return View();
         }
 
-        // POST: Movie/AddMovie
+        // POST: Movie/Add
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Route("Movie/Add")]
         public async Task<IActionResult> AddMovie(Movie movie)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                movie.MovieId = new Random().Next(1, 100000);
-                movie.EntryType = "metadata";
-
-                await _dynamoDbContext.SaveAsync(movie);
-                return RedirectToAction(nameof(Index));
+                // Log errors if model state is invalid
+                var errors = ModelState.Values.SelectMany(v => v.Errors);
+                foreach (var error in errors)
+                {
+                    Debug.WriteLine(error.ErrorMessage);
+                }
+                return View(movie);
             }
-            return View(movie);
-        }
 
-        
+            movie.MovieId = new Random().Next(1, 100000);
+            movie.EntryType = "metadata";
 
-        //// GET: Movie/Details/5
-        //public async Task<IActionResult> Details(int id)
-        //{
-        //    var aQuitePlace = await _dynamoDbContext.LoadAsync<Movie>(id, "metadata");
-        //    if (aQuitePlace == null)
-        //    {
-        //        return NotFound();
-        //    }
+            try
+            {
+                await _dynamoDbContext.SaveAsync(movie);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error saving movie: {ex.Message}");
+            }
 
-        //    // Calculate the average rating for the aQuitePlace
-        //    var averageRating = aQuitePlace.Ratings.Any() ? aQuitePlace.Ratings.Average(r => r.Rate) : 0;
-        //    ViewData["AverageRating"] = averageRating.ToString("F1");
-
-        //    return View(aQuitePlace);
-        //}
-
-        //// GET: Movie/Details/5
-        //public async Task<IActionResult> Details(string id)
-        //{
-        //    var aQuitePlace = await _dynamoDbContext.LoadAsync<Movie>(id);
-        //    if (aQuitePlace == null)
-        //    {
-        //        return NotFound();
-        //    }
-        //    return View(aQuitePlace);
-        //}
-
+            return RedirectToAction(nameof(Index));
+        }       
     }
 }
