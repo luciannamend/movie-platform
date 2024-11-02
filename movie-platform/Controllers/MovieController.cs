@@ -82,6 +82,76 @@ namespace movie_platform.Controllers
             }
 
             return RedirectToAction(nameof(Index));
-        }       
+        }
+
+        // GET: Movie/Details/5
+        public async Task<IActionResult> Details(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var movie = await _dynamoDbContext.LoadAsync<Movie>(id, "metadata");
+
+            if (movie == null)
+            {
+                return NotFound();
+            }
+
+            return View(movie);
+        }
+
+        // GET: Movie/Edit/5
+        public async Task<IActionResult> Edit(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var movie = await _dynamoDbContext.LoadAsync<Movie>(id, "metadata");
+
+            if (movie == null)
+            {
+                return NotFound();
+            }
+
+            return View(movie);
+        }
+
+        // POST: Movie/Edit/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(int id, Movie movie)
+        {
+            if (id != movie.MovieId)
+            {
+                return NotFound();
+            }
+
+            if (!ModelState.IsValid)
+            {
+                // Log errors if model state is invalid
+                var errors = ModelState.Values.SelectMany(v => v.Errors);
+                foreach (var error in errors)
+                {
+                    Debug.WriteLine(error.ErrorMessage);
+                }
+                return View(movie);
+            }
+
+            try
+            {
+                await _dynamoDbContext.SaveAsync(movie);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error saving movie: {ex.Message}");
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+
     }
 }

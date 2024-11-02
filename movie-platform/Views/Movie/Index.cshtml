@@ -12,7 +12,6 @@
         <input type="text" name="genre" id="genre" value="@ViewData["CurrentGenre"]">
     </div>
     <div>
-        <!-- allow only int for now-->
         <label for="minRating">Filter by Minimum Rating:</label>
         <input type="number" scale=0.1 min="0" max="10" name="minRating" id="minRating" value="@ViewData["CurrentMinRating"]">
     </div>
@@ -20,16 +19,12 @@
     <button type="button" onclick="clearFilters()">Clear Filters</button>
 </form>
 
+<!-- Movies Display -->
 <table class="table">
     <thead>
         <tr>
             <th>Title</th>
-            <th>Genre</th>
-            <th>Director</th>
-            <th>Release Year</th>
-            <th>Average Rating</th>
-            <th>Comment Link</th>
-            <th>Movie Link</th>
+            <th>Details</th>
         </tr>
     </thead>
     <tbody>
@@ -39,25 +34,14 @@
 
             <tr>
                 <td>@movie.Title</td>
-                <td>@movie.Genre</td>
-                <td>@movie.Director</td>
-                <td>@movie.ReleaseYear.ToString()</td>
-                <td>@averageRating:F1</td>
-                <td>
-                    <a>See Comments</a>@* link for comments page *@                    
-                </td>
-                <td>
-                    <a href="S3BUCKETLINK" target="_blank">Watch Movie</a>
-                </td>
+                <td><a asp-action="Details" asp-route-id="@movie.MovieId">See more</a></td>
             </tr>
         }
     </tbody>
 </table>
-
 <p>
     <a asp-action="Add">Add New Movie</a>
 </p>
-
 <script>
     function clearFilters() {
         document.getElementById("genre").value = '';
