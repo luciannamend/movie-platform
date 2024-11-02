@@ -3,7 +3,7 @@ using Amazon.DynamoDBv2;
 using Amazon.Runtime;
 using Microsoft.EntityFrameworkCore;
 using movie_platform.Models;
-using movie_platform.Controllers;
+using movie_platform.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 

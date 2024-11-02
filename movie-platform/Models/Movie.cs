@@ -8,40 +8,53 @@ namespace movie_platform.Models
     [DynamoDBTable("Movie")]
     public class Movie
     {
+        // Partition key
         [DynamoDBHashKey("MovieId")]
         public int MovieId { get; set; }
 
+        // Sort key
         [DynamoDBRangeKey("EntryType")]
-        public string EntryType { get; set; }
+        public string EntryType { get; set; } = "Movie"; // default
 
-        // Metadata
+        // Movie-specific attributes
         public string Title { get; set; }
         public string Genre { get; set; }
         public string Director { get; set; }
         public int ReleaseYear { get; set; }
-
-        // Ratings
-        [DynamoDBProperty("Ratings")]
         public List<int> Ratings { get; set; } = new List<int>();
-
-        // Comments as a nested complex type
-        [DynamoDBProperty("Comments")]
         public List<string> Comments { get; set; } = new List<string>();
+
+        // Calculate average for GSI
+        [DynamoDBProperty("AverageRating")]
+        public double AverageRating { get; set; }
     }
 
-    //public class Rating
-    //{
-    //    public int Rate { get; set; }
+    [DynamoDBTable("Movie")]
+    public class Rating
+    {
+        [DynamoDBHashKey("MovieId")]
+        public int MovieId { get; set; }
 
-    //    public int UserId { get; set; }
-    //}
+        [DynamoDBRangeKey("EntryType")]
+        public string EntryType { get; set; } = "Rating"; // EntryType for Rating
 
-    //public class Comment
-    //{
-    //    public string TextComment { get; set; }
+        public int UserId { get; set; } // Logged user
+        public int Rate { get; set; }
+        public DateTime CreatedAt { get; set; }
+    }
 
-    //    public int UserId { get; set; }
+    [DynamoDBTable("Movie")]
+    public class Comment
+    {
+        [DynamoDBHashKey("MovieId")]
+        public int MovieId { get; set; }
 
-    //    public DateTime CreatedAt { get; set; }
-    //}
+        [DynamoDBRangeKey("EntryType")]
+        public string EntryType { get; set; } = "Comment"; // EntryType for Comment
+
+        public int CommentId { get; set; }
+        public int UserId { get; set; } // Logged user
+        public string Content { get; set; }
+        public DateTime CreatedAt { get; set; }
+    }
 }

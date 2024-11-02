@@ -33,12 +33,19 @@
         <dd class = "col-sm-10">
             @Html.DisplayFor(model => model.ReleaseYear)
         </dd>
+
+        <!-- later calculate and display average   
+            var averageRating = model.Ratings.Any() ? model.Ratings.Average() : 0;
+        -->
+
         <dt class = "col-sm-2">
             @Html.DisplayNameFor(model => model.Ratings)
         </dt>
         <dd class = "col-sm-10">
             @Html.DisplayFor(model => model.Ratings)
         </dd>
+
+
         <dt class = "col-sm-2">
             @Html.DisplayNameFor(model => model.Comments)
         </dt>

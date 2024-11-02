@@ -5,7 +5,7 @@ using movie_platform.Models;
 using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 
-namespace movie_platform.Controllers
+namespace movie_platform.Services
 {
     public class DynamoDBMovieOperation
     {
@@ -24,19 +24,19 @@ namespace movie_platform.Controllers
             var request = new CreateTableRequest
             {
                 TableName = "Movie",
-
-                KeySchema = new List<KeySchemaElement>
-                {
-                    new KeySchemaElement("MovieId", KeyType.HASH),   // Partition key
-                    new KeySchemaElement("EntryType", KeyType.RANGE) // Sort key
-                },
-
+                // Attributes
                 AttributeDefinitions = new List<AttributeDefinition>
                 {
                     new AttributeDefinition("MovieId", ScalarAttributeType.N),
                     new AttributeDefinition("EntryType", ScalarAttributeType.S),
-                    new AttributeDefinition("Rating", ScalarAttributeType.N),
-                    new AttributeDefinition("Genre", ScalarAttributeType.S)
+                    new AttributeDefinition("Genre", ScalarAttributeType.S),
+                    new AttributeDefinition("AverageRating", ScalarAttributeType.N)
+                },
+                // Primary key
+                KeySchema = new List<KeySchemaElement>
+                {
+                    new KeySchemaElement("MovieId", KeyType.HASH),   // Partition key
+                    new KeySchemaElement("EntryType", KeyType.RANGE) // Sort key
                 },
 
                 ProvisionedThroughput = new ProvisionedThroughput
@@ -45,46 +45,39 @@ namespace movie_platform.Controllers
                     WriteCapacityUnits = 5
                 },
 
+                // Secondary indexes for searching 
                 GlobalSecondaryIndexes = new List<GlobalSecondaryIndex>
                 {
-                    // GSI for Rating
+                    // by genre
                     new GlobalSecondaryIndex
                     {
-                        IndexName = "RatingIndex",
+                        IndexName = "GenreIndex",
                         KeySchema = new List<KeySchemaElement>
                         {
-                            new KeySchemaElement("Rating", KeyType.HASH),
-                            new KeySchemaElement("MovieId", KeyType.RANGE)
+                            new KeySchemaElement("Genre", KeyType.HASH)
                         },
-
                         Projection = new Projection
                         {
                             ProjectionType = ProjectionType.ALL
                         },
-
                         ProvisionedThroughput = new ProvisionedThroughput
                         {
                             ReadCapacityUnits = 5,
                             WriteCapacityUnits = 5
                         }
                     },
-
-                    // GSI for Genre
+                    // by rate average
                     new GlobalSecondaryIndex
                     {
-                        IndexName = "GenreIndex",
-
+                        IndexName = "AverageRatingIndex",
                         KeySchema = new List<KeySchemaElement>
                         {
-                            new KeySchemaElement("Genre", KeyType.HASH),
-                            new KeySchemaElement("MovieId", KeyType.RANGE)
+                            new KeySchemaElement("AverageRating", KeyType.HASH)
                         },
-
                         Projection = new Projection
                         {
                             ProjectionType = ProjectionType.ALL
                         },
-
                         ProvisionedThroughput = new ProvisionedThroughput
                         {
                             ReadCapacityUnits = 5,
@@ -93,12 +86,14 @@ namespace movie_platform.Controllers
                     }
                 }
             };
-
+            // Check if table already exists
             var existingTables = await _client.ListTablesAsync();
+
+            // If doesn't exist, create it
             if (!existingTables.TableNames.Contains("Movie"))
             {
                 await _client.CreateTableAsync(request);
-                Debug.WriteLine("Table 'Movie' with GSIs created successfully.");
+                Debug.WriteLine("Movie tb created.");
 
                 // Wait until the table is created
                 bool isTableAvailable = false;
@@ -116,9 +111,54 @@ namespace movie_platform.Controllers
             {
                 Debug.WriteLine("Table 'Movie' already exists.");
             }
+        }        
+
+        // Method to add 3 movies
+        public async Task AddSampleMovie()
+        {
+            var movies = new List<Movie>
+            {
+                new Movie
+                {
+                    MovieId = 1,
+                    Title = "A Quiet Place",
+                    Genre = "Horror",
+                    Director = "John Krasinski",
+                    ReleaseYear = 2018,
+                    Ratings = new List<int> { 8, 9 },
+                    Comments = new List<string> { "Very thrilling!", "Loved the suspense." }
+                },
+                new Movie
+                {
+                    MovieId = 2,
+                    Title = "Titanic",
+                    Genre = "Drama",
+                    Director = "James Cameron",
+                    ReleaseYear = 1997,
+                    Ratings = new List<int> { 10, 9 },
+                    Comments = new List<string> { "A classic!", "Beautiful and tragic." }
+                },
+                new Movie
+                {
+                    MovieId = 3,
+                    Title = "Snow White",
+                    Genre = "Fantasy",
+                    Director = "David Hand",
+                    ReleaseYear = 2025,
+                    Ratings = new List<int> { 7, 8 },
+                    Comments = new List<string> { "Timeless story.", "Great for all ages." }
+                }
+            };
+
+            foreach (var movie in movies)
+            {
+                movie.EntryType = "Movie";
+                movie.AverageRating = movie.Ratings.Count > 0 ? movie.Ratings.Average() : 0;
+                await _context.SaveAsync(movie);
+            }
+
+            Console.WriteLine("Sample movies added to DynamoDB.");
         }
-
-
 
         // Method to add a new movie
         public async Task AddMovieAsync(int movieId, string entryType, string title, string genre)
@@ -141,51 +181,6 @@ namespace movie_platform.Controllers
                 Debug.WriteLine($"Error adding movie: {ex.Message}");
             }
         }
-
-        // add 3 sample movies
-        public async Task AddSampleMovie()
-        {
-            List<Movie> movies = new List<Movie>();
-
-            var aQuitePlace = new Movie
-            {
-                MovieId = 1,
-                EntryType = "metadata",
-                Title = "A Quite Place",
-                Genre = "Horror",
-                Director = "John Krasinski",
-                ReleaseYear = 2018
-            };
-            movies.Add(aQuitePlace);
-
-            var titanic = new Movie
-            {
-                MovieId = 2,
-                EntryType = "metadata",
-                Title = "Titanic",
-                Genre = "Drama",
-                Director = "James Cameron",
-                ReleaseYear = 1997
-            };
-            movies.Add(titanic);
-
-            var snowWhite = new Movie
-            {
-                MovieId = 3,
-                EntryType = "metadata",
-                Title = "Snow White",
-                Genre = "Fantasy",
-                Director = "Marc Webb",
-                ReleaseYear = 2025
-            };
-            movies.Add(snowWhite);
-
-            foreach (var movie in movies)
-            {
-                await _context.SaveAsync(movie);
-            }
-        }
-
 
         // Method to retrieve a movie by its ID and entry type
         public async Task<Movie> GetMovieAsync(int movieId, string entryType)
