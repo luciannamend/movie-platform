@@ -173,7 +173,7 @@ namespace movie_platform.Controllers
             {
                 MovieId = 3,
                 EntryType = "metadata",
-                Title = "Disney's Snow White",
+                Title = "Snow White",
                 Genre = "Fantasy",
                 Director = "Marc Webb",
                 ReleaseYear = 2025

@@ -13,35 +13,34 @@
     </div>
     <div>
         <label for="minRating">Filter by Minimum Rating:</label>
-        <input type="number" scale=0.1 min="0" max="10" name="minRating" id="minRating" value="@ViewData["CurrentMinRating"]">
+        <input type="number" step="0.1" min="0" max="10" name="minRating" id="minRating" value="@ViewData["CurrentMinRating"]">
     </div>
     <button type="submit">Apply Filters</button>
     <button type="button" onclick="clearFilters()">Clear Filters</button>
 </form>
 
 <!-- Movies Display -->
-<table class="table">
-    <thead>
-        <tr>
-            <th>Title</th>
-            <th>Details</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var movie in Model)
-        {
-            var averageRating = movie.Ratings.Any() ? movie.Ratings.Average() : 0;
+<div class="movie-grid">
+    @foreach (var movie in Model)
+    {
+        var averageRating = movie.Ratings.Any() ? movie.Ratings.Average() : 0;
 
-            <tr>
-                <td>@movie.Title</td>
-                <td><a asp-action="Details" asp-route-id="@movie.MovieId">See more</a></td>
-            </tr>
-        }
-    </tbody>
-</table>
+        <div class="movie-card">
+            @* <img src="@movie.ImageUrl" alt="@movie.Title" class="movie-image" /> *@
+            <div class="movie-details">
+                <h3>@movie.Title</h3>
+                <p><strong>Genre:</strong> @movie.Genre</p>
+                <p><strong>Rating:</strong> @averageRating.ToString("0.0")</p>
+                <a asp-action="Details" asp-route-id="@movie.MovieId" class="btn btn-primary">See more</a>
+            </div>
+        </div>
+    }
+</div>
+
 <p>
-    <a asp-action="Add">Add New Movie</a>
+    <a asp-action="Add" class="btn btn-success">Add New Movie</a>
 </p>
+
 <script>
     function clearFilters() {
         document.getElementById("genre").value = '';
@@ -49,3 +48,44 @@
         document.querySelector('form').submit();
     }
 </script>
+
+<style>
+    /* Movie Grid Styles */
+    .movie-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 20px;
+        padding: 20px;
+    }
+
+    .movie-card {
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        overflow: hidden;
+        background-color: #fff;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s;
+    }
+
+        .movie-card:hover {
+            transform: scale(1.05);
+        }
+
+    .movie-image {
+        width: 100%;
+        height: 300px;
+        object-fit: cover;
+    }
+
+    .movie-details {
+        padding: 10px;
+    }
+
+    .btn {
+        margin-top: 10px;
+    }
+</style>
