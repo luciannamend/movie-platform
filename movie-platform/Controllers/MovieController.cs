@@ -35,7 +35,7 @@ namespace movie_platform.Controllers
             // Filter by Minimum Rating
             if (minRating.HasValue)
             {
-                movies = movies.Where(m => m.Ratings.Any() && m.Ratings.Average() >= minRating.Value).ToList();
+                movies = movies.Where(m => m.AverageRating >= minRating.Value).ToList();
             }
 
             // Store filter values in ViewData to retain them in the view form inputs
@@ -70,7 +70,7 @@ namespace movie_platform.Controllers
             }
 
             movie.MovieId = new Random().Next(1, 100000);
-            movie.EntryType = "metadata";
+            movie.EntryType = "Movie";
 
             try
             {
@@ -92,7 +92,7 @@ namespace movie_platform.Controllers
                 return NotFound();
             }
 
-            var movie = await _dynamoDbContext.LoadAsync<Movie>(id, "metadata");
+            var movie = await _dynamoDbContext.LoadAsync<Movie>(id, "Movie");
 
             if (movie == null)
             {
@@ -110,7 +110,7 @@ namespace movie_platform.Controllers
                 return NotFound();
             }
 
-            var movie = await _dynamoDbContext.LoadAsync<Movie>(id, "metadata");
+            var movie = await _dynamoDbContext.LoadAsync<Movie>(id, "Movie");
 
             if (movie == null)
             {
@@ -125,6 +125,7 @@ namespace movie_platform.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, Movie movie)
         {
+
             if (id != movie.MovieId)
             {
                 return NotFound();
@@ -143,7 +144,20 @@ namespace movie_platform.Controllers
 
             try
             {
-                await _dynamoDbContext.SaveAsync(movie);
+                // retrieve the existing movie
+                var existingMovie = await _dynamoDbContext.LoadAsync<Movie>(id, "Movie");
+                if (existingMovie == null)
+                {
+                    return NotFound();
+                }
+
+                // Update only the editable fields
+                existingMovie.Title = movie.Title;
+                existingMovie.Genre = movie.Genre;
+                existingMovie.Director = movie.Director;
+                existingMovie.ReleaseYear = movie.ReleaseYear;
+
+                await _dynamoDbContext.SaveAsync(existingMovie);
             }
             catch (Exception ex)
             {
@@ -152,6 +166,5 @@ namespace movie_platform.Controllers
 
             return RedirectToAction(nameof(Index));
         }
-
     }
 }

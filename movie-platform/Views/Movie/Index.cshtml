@@ -13,7 +13,7 @@
     </div>
     <div>
         <!-- it has to be minmun average-->
-        <label for="minRating">Filter by Minimum (Overall) Rating:</label>
+        <label for="minRating">Filter by Minimum Overall Rating:</label>
         <input type="number" step="0.1" min="0" max="10" name="minRating" id="minRating" value="@ViewData["CurrentMinRating"]">
     </div>
     <button type="submit">Apply Filters</button>
@@ -24,15 +24,13 @@
 <div class="movie-grid">
     @foreach (var movie in Model)
     {
-        var averageRating = movie.Ratings.Any() ? movie.Ratings.Average() : 0;
-
         <div class="movie-card">
             <!-- Think about put up some images within the movie -->
             @* <img src="@movie.ImageUrl" alt="@movie.Title" class="movie-image" /> *@
             <div class="movie-details">
                 <h3>@movie.Title</h3>
                 <p><strong>Genre:</strong> @movie.Genre</p>
-                <p><strong>Rating:</strong> @averageRating.ToString("0.0")</p>
+                <p><strong>Average Rating:</strong> @movie.AverageRating.ToString("0.0")</p>
                 <a asp-action="Details" asp-route-id="@movie.MovieId" class="btn btn-primary">See more</a>
             </div>
         </div>

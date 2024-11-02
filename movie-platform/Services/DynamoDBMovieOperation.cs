@@ -160,28 +160,6 @@ namespace movie_platform.Services
             Console.WriteLine("Sample movies added to DynamoDB.");
         }
 
-        // Method to add a new movie
-        public async Task AddMovieAsync(int movieId, string entryType, string title, string genre)
-        {
-            var movie = new Movie
-            {
-                MovieId = movieId,
-                EntryType = entryType,
-                Title = title,
-                Genre = genre
-            };
-
-            try
-            {
-                await _context.SaveAsync(movie);
-                Debug.WriteLine($"Movie '{title}' added successfully.");
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Error adding movie: {ex.Message}");
-            }
-        }
-
         // Method to retrieve a movie by its ID and entry type
         public async Task<Movie> GetMovieAsync(int movieId, string entryType)
         {
