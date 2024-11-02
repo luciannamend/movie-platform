@@ -1,25 +1,63 @@
 ﻿@model IEnumerable<movie_platform.Models.Movie>
+@{
+    ViewData["Title"] = "Movies";
+}
+
+<h2>Movies</h2>
+
+<!-- Filter & Sort Form -->
+<form method="get" asp-controller="Movie" asp-action="Index">
+    <div>
+        <label for="genre">Filter by Genre:</label>
+        <input type="text" name="genre" id="genre" value="@ViewData["CurrentGenre"]">
+    </div>
+    <div>
+        <!-- allow only int for now-->
+        <label for="minRating">Filter by Minimum Rating:</label>
+        <input type="number" scale=0.1 min="0" max="10" name="minRating" id="minRating" value="@ViewData["CurrentMinRating"]">
+    </div>
+    <button type="submit">Apply Filters</button>
+    <button type="button" onclick="clearFilters()">Clear Filters</button>
+</form>
 
 <table class="table">
     <thead>
         <tr>
             <th>Title</th>
             <th>Genre</th>
-            <th>ReleaseDate</th>
-            <th>Actions</th>
+            <th>Director</th>
+            <th>Release Year</th>
+            <th>Average Rating</th>
+            <th>Comment Link</th>
+            <th>Video Link</th>
         </tr>
     </thead>
     <tbody>
-        @foreach (var item in Model)
+        @foreach (var movie in Model)
         {
+            var averageRating = movie.Ratings.Any() ? movie.Ratings.Average() : 0;
+
             <tr>
-                <td>@item.Title</td>
-                <td>@item.Genre</td>
-                <td>@item.ReleaseDate</td>
+                <td>@movie.Title</td>
+                <td>@movie.Genre</td>
+                <td>@movie.Director</td>
+                <td>@movie.ReleaseYear.ToString()</td>
+                <td>@averageRating:F1</td>
                 <td>
-                    <a asp-action="Details" asp-route-id="@item.MovieId">Details</a>
+                    <a>See Comments</a>@* link for comments page *@                    
+                </td>
+                <td>
+                    <a href="S3BUCKETLINK" target="_blank">Watch Movie</a>
                 </td>
             </tr>
         }
     </tbody>
 </table>
+
+<script>
+    function clearFilters() {
+        document.getElementById("genre").value = '';
+        document.getElementById("minRating").value = '';
+        document.querySelector('form').submit();
+    }
+</script>

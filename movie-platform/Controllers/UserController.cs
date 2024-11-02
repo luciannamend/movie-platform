@@ -13,7 +13,6 @@ namespace movie_platform.Controllers
     public class UserController : Controller
     {
         private readonly MovieplatformdbContext _context;
-        private static int _nextId = 1;
 
         public UserController(MovieplatformdbContext context)
         {
@@ -55,7 +54,7 @@ namespace movie_platform.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("UserName,Password")] User user)
         {
-            user.Id = _nextId++;
+            user.Id = new Random().Next(1, 1000000);
 
             if (ModelState.IsValid)
             {
