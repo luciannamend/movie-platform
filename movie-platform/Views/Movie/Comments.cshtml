@@ -1,0 +1,42 @@
+﻿@model movie_platform.Models.Movie
+
+@{
+    ViewData["Title"] = "Comments for " + Model.Title;
+}
+
+<h1>Comments for @Model.Title</h1>
+<hr />
+
+@if (Context.Session.GetString("UserName") != null)
+{
+    
+    @if (Model.Comments != null && Model.Comments.Count > 0)
+    {
+        <ul class="list-group">
+
+            @foreach (var comment in Model.Comments)
+            {
+                <li class="list-group-item">@Html.DisplayFor(m => comment)</li>
+            }            
+        </ul>
+    }
+    else
+    {
+        <p>No comments available for this movie.</p>
+    }
+
+    // Form for adding a new comment
+    <form asp-action="AddComment" asp-route-movieId="@Model.MovieId" method="post">
+        <div class="form-group">
+            <label for="content">Add a Comment</label>
+            <textarea id="content" name="content" class="form-control" rows="3" required></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">Submit Comment</button>
+    </form>
+
+    <a asp-action="Details" asp-route-id="@Model.MovieId">Back to Movie Details</a>
+}
+else
+{
+    <p>You must be logged in to view comments. Please, go to <a asp-area="" asp-controller="Login" asp-action="Index">login </a>page.</p>
+}

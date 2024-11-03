@@ -14,10 +14,12 @@ namespace movie_platform.Controllers
     public class MovieController : Controller
     {
         private readonly IDynamoDBContext _dynamoDbContext;
+        private readonly MovieplatformdbContext _context;
 
-        public MovieController(IDynamoDBContext dynamoDbContext)
+        public MovieController(IDynamoDBContext dynamoDbContext, MovieplatformdbContext context)
         {
             _dynamoDbContext = dynamoDbContext;
+            _context = context;
         }
 
         // GET: Movie
@@ -165,6 +167,129 @@ namespace movie_platform.Controllers
             }
 
             return RedirectToAction(nameof(Index));
+        }
+
+        // GET: Movie/AddRate/34663
+        [HttpGet]
+        [Route("Movie/AddRate/{movieId}")]
+        public async Task<IActionResult> AddRate(int movieId)
+        {
+            var movie = await _dynamoDbContext.LoadAsync<Movie>(movieId, "Movie");
+
+            if (movie == null)
+            {
+                return NotFound();
+            }
+
+            return View(movie);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Route("Movie/AddRate/{movieId}")]
+        public async Task<IActionResult> AddRate(int movieId, int rate)
+        {
+            //get username from session
+            var username = HttpContext.Session.GetString("UserName");
+            Debug.WriteLine($"User {username} is rating movie {movieId} with {rate}");
+
+            // get userId based on username
+            var userId = await _context.Users
+                .Where(u => u.UserName.ToLower() == username.ToLower()) // Compare in lowercase
+                .Select(u => u.Id)
+                .FirstOrDefaultAsync();
+
+            if (userId == 0)
+            {
+                ModelState.AddModelError("", "User not logged in.");
+                return RedirectToAction("AddRate", new { movieId }); // back to the rating
+            }
+
+            var newRating = new Rating
+            {
+                MovieId = movieId,
+                EntryType = "Rating",
+                UserId = (int)userId,
+                Rate = rate,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            // movie based on movieId
+            var movie = await _dynamoDbContext.LoadAsync<Movie>(movieId, "Movie");
+
+            // Add the rating to the movie
+            movie.Ratings.Add(rate);
+            movie.AverageRating = movie.Ratings.Count > 0 ? movie.Ratings.Average() : 0;
+
+            // Save the rating to the database
+            await _dynamoDbContext.SaveAsync(movie);
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        // GET: Movie/Comments/34663
+        [HttpGet]
+        [Route("Movie/Comments/{movieId}")]
+        public async Task<IActionResult> Comments(int movieId)
+        {
+            var movie = await _dynamoDbContext.LoadAsync<Movie>(movieId, "Movie");
+
+            if (movie == null)
+            {
+                return NotFound();
+            }
+
+            return View(movie);
+        }
+
+        // POST: Movie/AddComment/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Route("Movie/AddComment/5")]
+        public async Task<IActionResult> AddComment(int movieId, string content)
+        {
+            if (string.IsNullOrWhiteSpace(content))
+            {
+                ModelState.AddModelError("", "Comment cannot be empty.");
+                return RedirectToAction("Comments", new { movieId }); // back to the comments
+            }
+
+            //get username from session
+            var username = HttpContext.Session.GetString("UserName");
+            Debug.WriteLine($"User {username} is adding a comment to movie {movieId}");
+
+            // get userId based on username
+            var userId = await _context.Users
+                .Where(u => u.UserName.ToLower() == username.ToLower()) // Compare in lowercase
+                .Select(u => u.Id)
+                .FirstOrDefaultAsync();
+
+            if (userId == 0)
+            {
+                ModelState.AddModelError("", "User not logged in.");
+                return RedirectToAction("Comments", new { movieId }); // back to the comments
+            }
+
+            var newComment = new Comment
+            {
+                MovieId = movieId,
+                EntryType = "Comment",
+                CommentId = new Random().Next(1, 100000),
+                UserId = (int)userId,
+                Content = content,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            // pega o movie based on movieId
+            var movie = await _dynamoDbContext.LoadAsync<Movie>(movieId, "Movie");
+
+            // Add the comment to the movie
+            movie.Comments.Add(content);
+
+            // Save the comment to the database
+            await _dynamoDbContext.SaveAsync(movie);
+
+            return RedirectToAction("Comments", new { movieId }); 
         }
     }
 }

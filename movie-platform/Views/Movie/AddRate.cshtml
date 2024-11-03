@@ -1,0 +1,29 @@
+﻿@model movie_platform.Models.Movie
+
+@{
+    ViewData["Title"] = "Rate Movie";
+}
+
+<h1>Rating @Model.Title</h1>
+
+<hr />
+
+@if (Context.Session.GetString("UserName") != null)
+{
+    <form asp-action="AddRate" asp-route-movieId="@Model.MovieId" method="post">
+        <div class="form-group">
+            <label for="rate">Rating (1-10):</label>
+            <input type="number" id="rate" name="rate" class="form-control" min="1" max="10" required />
+        </div>
+
+        <button type="submit" class="btn btn-primary">Submit Rating</button>
+    </form>
+}
+else
+{
+    <p>You must be logged in to rate movies. Please, go to <a asp-area="" asp-controller="Login" asp-action="Index">login</a> page.</p>
+}
+
+<div>
+    <a asp-action="Index">Back to Movies List</a>
+</div>

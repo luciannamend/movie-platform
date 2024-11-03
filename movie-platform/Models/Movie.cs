@@ -36,9 +36,9 @@ namespace movie_platform.Models
         public int MovieId { get; set; }
 
         [DynamoDBRangeKey("EntryType")]
-        public string EntryType { get; set; } = "Rating"; // EntryType for Rating
+        public string EntryType { get; set; } = "Rating";
 
-        public int UserId { get; set; } // Logged user
+        public int UserId { get; set; }
         public int Rate { get; set; }
         public DateTime CreatedAt { get; set; }
     }
@@ -50,10 +50,10 @@ namespace movie_platform.Models
         public int MovieId { get; set; }
 
         [DynamoDBRangeKey("EntryType")]
-        public string EntryType { get; set; } = "Comment"; // EntryType for Comment
+        public string EntryType { get; set; } = "Comment";
 
         public int CommentId { get; set; }
-        public int UserId { get; set; } // Logged user
+        public int UserId { get; set; }
         public string Content { get; set; }
         public DateTime CreatedAt { get; set; }
     }

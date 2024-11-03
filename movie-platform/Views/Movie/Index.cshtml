@@ -5,41 +5,51 @@
 
 <h2>Movies</h2>
 
-<!-- Filter & Sort Form -->
-<form method="get" asp-controller="Movie" asp-action="Index">
-    <div>
-        <label for="genre">Filter by Genre:</label>
-        <input type="text" name="genre" id="genre" value="@ViewData["CurrentGenre"]">
-    </div>
-    <div>
-        <!-- it has to be minmun average-->
-        <label for="minRating">Filter by Minimum Overall Rating:</label>
-        <input type="number" step="0.1" min="0" max="10" name="minRating" id="minRating" value="@ViewData["CurrentMinRating"]">
-    </div>
-    <button type="submit">Apply Filters</button>
-    <button type="button" onclick="clearFilters()">Clear Filters</button>
-</form>
-
-<!-- Movies Display -->
-<div class="movie-grid">
-    @foreach (var movie in Model)
-    {
-        <div class="movie-card">
-            <!-- Think about put up some images within the movie -->
-            @* <img src="@movie.ImageUrl" alt="@movie.Title" class="movie-image" /> *@
-            <div class="movie-details">
-                <h3>@movie.Title</h3>
-                <p><strong>Genre:</strong> @movie.Genre</p>
-                <p><strong>Average Rating:</strong> @movie.AverageRating.ToString("0.0")</p>
-                <a asp-action="Details" asp-route-id="@movie.MovieId" class="btn btn-primary">See more</a>
-            </div>
+@if (Context.Session.GetString("UserName") != null)
+{
+    <!-- Filter & Sort Form -->
+    <form method="get" asp-controller="Movie" asp-action="Index">
+        <div>
+            <label for="genre">Filter by Genre:</label>
+            <input type="text" name="genre" id="genre" value="@ViewData["CurrentGenre"]">
         </div>
-    }
-</div>
+        <div>
+            <!-- it has to be minmun average-->
+            <label for="minRating">Filter by Minimum Overall Rating:</label>
+            <input type="number" step="0.1" min="0" max="10" name="minRating" id="minRating" value="@ViewData["CurrentMinRating"]">
+        </div>
+        <button type="submit">Apply Filters</button>
+        <button type="button" onclick="clearFilters()">Clear Filters</button>
+    </form>
 
-<p>
-    <a asp-action="Add" class="btn btn-success">Add New Movie</a>
-</p>
+    <!-- Movies Display -->
+    <div class="movie-grid">
+        @foreach (var movie in Model)
+        {
+            if (movie.EntryType == "Movie"){
+                <div class="movie-card">
+                    <!-- Think about put up some images within the movie -->
+                    @* <img src="@movie.ImageUrl" alt="@movie.Title" class="movie-image" /> *@
+                    <div class="movie-details">
+                        <h3>@movie.Title</h3>
+                        <p><strong>Genre:</strong> @movie.Genre</p>
+                        <p><strong>Average Rating:</strong> @movie.AverageRating.ToString("0.0")</p>
+                        <a asp-action="Details" asp-route-id="@movie.MovieId" class="btn btn-primary">Movie Details</a>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+
+    <p>
+        <a asp-action="Add" class="btn btn-success">Add New Movie</a>
+    </p>
+}
+else
+{   
+    <p>You are not logged in. Please <a asp-area="" asp-controller="Login" asp-action="Index">login</a> to view the movies.</p>
+}
+
 
 <script>
     function clearFilters() {
