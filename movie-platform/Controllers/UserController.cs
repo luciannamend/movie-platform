@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.CodeAnalysis.Scripting;
 using Microsoft.EntityFrameworkCore;
 using movie_platform.Models;
 
@@ -54,7 +55,11 @@ namespace movie_platform.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("UserName,Password")] User user)
         {
+            // create id
             user.Id = new Random().Next(1, 1000000);
+            // hash password
+            var hashedPassword = HashPassword(user.Password);
+            user.Password = hashedPassword;
 
             if (ModelState.IsValid)
             {
@@ -67,9 +72,7 @@ namespace movie_platform.Controllers
                     return RedirectToAction("Login", "User");
                 }
                 return RedirectToAction(nameof(Index));
-            }
-
-            
+            }          
 
             return View(user);
         }
@@ -95,6 +98,10 @@ namespace movie_platform.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("Id,UserName,Password")] User user)
         {
+
+            var hashedPassword = HashPassword(user.Password);
+            user.Password = hashedPassword;
+
             if (id != user.Id)
             {
                 return NotFound();
@@ -175,16 +182,22 @@ namespace movie_platform.Controllers
                 return View(login);
             }
 
-            // Check if user exists with matching username and password
+            // Check if user exists with matching username 
             var user = await _context.Users
-                .FirstOrDefaultAsync(u => u.UserName == login.UserName && u.Password == login.Password);
-
+                .FirstOrDefaultAsync(u => u.UserName == login.UserName);
             if (user == null)
             {
                 ModelState.AddModelError(string.Empty, "Invalid username or password.");
                 return View(login);
             }
-            Debug.WriteLine($"Route for {nameof(Index)}: {Request.Path}");
+            //Debug.WriteLine($"Route for {nameof(Index)}: {Request.Path}");
+
+            // Verify the password
+            if (!VerifyPassword(login.Password, user.Password))
+            {
+                ModelState.AddModelError(string.Empty, "Invalid username or password.");
+                return View(login);
+            }
 
             // Set a session variable to indicate user is logged in
             HttpContext.Session.SetString("UserName", user.UserName);
@@ -201,10 +214,23 @@ namespace movie_platform.Controllers
             return RedirectToAction("Index", "Home"); // Redirect to home or login page
         }
 
-
+        // SERVICE
+        // check if user exists
         private bool UserExists(int id)
         {
             return _context.Users.Any(e => e.Id == id);
+        }
+
+        // encrypt the password
+        private string HashPassword(string password)
+        {
+            return BCrypt.Net.BCrypt.HashPassword(password);
+        }
+
+        // verify the hashed password
+        public bool VerifyPassword(string password, string hashedPassword)
+        {
+            return BCrypt.Net.BCrypt.Verify(password, hashedPassword);
         }
     }
 }
