@@ -4,6 +4,8 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Amazon.DynamoDBv2.DataModel;
+using Amazon.S3;
+using Amazon.S3.Model;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -15,11 +17,14 @@ namespace movie_platform.Controllers
     {
         private readonly IDynamoDBContext _dynamoDbContext;
         private readonly MovieplatformdbContext _context;
+        private readonly IAmazonS3 _s3Client;
+        private readonly string _bucketName = "movie-platform-lucianna";
 
-        public MovieController(IDynamoDBContext dynamoDbContext, MovieplatformdbContext context)
+        public MovieController(IDynamoDBContext dynamoDbContext, MovieplatformdbContext context, IAmazonS3 s3Client)
         {
-            _dynamoDbContext = dynamoDbContext;
-            _context = context;
+            _dynamoDbContext = dynamoDbContext; // dynamoDb for movies
+            _context = context; // RDS for users
+            _s3Client = s3Client; // S3 bucket for movie downloads
         }
 
         // GET: Movie
@@ -184,6 +189,7 @@ namespace movie_platform.Controllers
             return View(movie);
         }
 
+        // POST: Movie/AddRate/34663
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Route("Movie/AddRate/{movieId}")]
@@ -280,16 +286,41 @@ namespace movie_platform.Controllers
                 CreatedAt = DateTime.UtcNow
             };
 
-            // pega o movie based on movieId
             var movie = await _dynamoDbContext.LoadAsync<Movie>(movieId, "Movie");
-
-            // Add the comment to the movie
             movie.Comments.Add(content);
-
-            // Save the comment to the database
             await _dynamoDbContext.SaveAsync(movie);
 
             return RedirectToAction("Comments", new { movieId }); 
         }
+
+        // GET: Movies/Download/3
+        [HttpGet]
+        [Route("Movie/Download/{movieId}")]
+        public async Task<IActionResult> Download(int movieId)
+        {
+            // retrieve movie
+            var movie = await _dynamoDbContext.LoadAsync<Movie>(movieId, "Movie");
+            // set the movie key
+            var s3Key = movieId + ".mkv";
+            Debug.WriteLine($"DOWNLOADING MOVIE WITH KEY: {s3Key}");
+
+            if (movie == null)
+            {
+                return NotFound();
+            }
+
+            // Generate a pre-signed URL for the movie file in S3
+            var request = new GetPreSignedUrlRequest
+            {
+                BucketName = _bucketName,
+                Key = s3Key,
+                Expires = DateTime.UtcNow.AddMinutes(15) // URL valid for 15 min
+            };
+
+            string url = _s3Client.GetPreSignedURL(request);
+
+            return Json(new { url });
+        }
     }
 }
+

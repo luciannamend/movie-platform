@@ -41,7 +41,13 @@
             <dd class="col-sm-10">
                 @Html.DisplayFor(model => model.AverageRating)
             </dd>
+
+            @* <dd><a asp-action="Download" asp-route-id="@Model?.MovieId">Download</a></dd> *@
+
+            <dd><a href="javascript:void(0);" id="downloadLink">Download</a></dd>
         </dl>
+
+        
     </div>
     <div>
         <a asp-action="Edit" asp-route-id="@Model?.MovieId">Edit Movie</a>  |
@@ -56,6 +62,26 @@
 else
 {
     <p>You are not logged in. Please <a asp-area="" asp-controller="Login" asp-action="Index">login</a> to view movie details.</p>
+}
+
+@section Scripts {
+    <script>
+        document.getElementById("downloadLink").addEventListener("click", async function () {
+            try {
+                const movieId = @Model?.MovieId; // Get the movie ID
+                const response = await fetch(`/Movie/Download/${movieId}`);
+                if (!response.ok) throw new Error("Network response was not ok");
+
+                const data = await response.json();
+                const url = data.url;
+
+                // Open the URL in a new tab or initiate a download
+                window.open(url, '_blank');
+            } catch (error) {
+                console.error("Failed to download the movie:", error);
+            }
+        });
+    </script>
 }
 
 

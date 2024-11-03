@@ -4,6 +4,7 @@ using Amazon.Runtime;
 using Microsoft.EntityFrameworkCore;
 using movie_platform.Models;
 using movie_platform.Services;
+using Amazon.S3;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -42,6 +43,22 @@ builder.Services.AddSingleton<IDynamoDBContext, DynamoDBContext>(sp =>
     return new DynamoDBContext(dynamoDbClient);
 });
 builder.Services.AddSingleton<DynamoDBMovieOperation>();
+
+// Configure S3
+builder.Services.AddSingleton<IAmazonS3>(sp =>
+{
+    var config = builder.Configuration;
+    var awsCredentials = new BasicAWSCredentials(
+        config["AWS:AccessKey"], // if doesnt work, add new s3 access like AWSS3:AccessKey  
+        config["AWS:SecretKey"]
+    );
+    var s3Config = new AmazonS3Config
+    {
+        RegionEndpoint = Amazon.RegionEndpoint.GetBySystemName(config["AWS:Region"])
+    };
+
+    return new AmazonS3Client(awsCredentials, s3Config);
+});
 
 // Add session services
 builder.Services.AddSession(options =>
