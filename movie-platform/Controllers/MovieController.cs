@@ -77,7 +77,7 @@ namespace movie_platform.Controllers
             }
 
             movie.MovieId = new Random().Next(1, 100000);
-            movie.EntryType = "Movie";
+            movie.EntryType = "User";
 
             try
             {
@@ -103,8 +103,9 @@ namespace movie_platform.Controllers
 
             if (movie == null)
             {
-                return NotFound();
+                movie = await _dynamoDbContext.LoadAsync<Movie>(id, "User");
             }
+
 
             return View(movie);
         }
@@ -121,7 +122,7 @@ namespace movie_platform.Controllers
 
             if (movie == null)
             {
-                return NotFound();
+                movie = await _dynamoDbContext.LoadAsync<Movie>(id, "User");
             }
 
             return View(movie);
@@ -155,7 +156,7 @@ namespace movie_platform.Controllers
                 var existingMovie = await _dynamoDbContext.LoadAsync<Movie>(id, "Movie");
                 if (existingMovie == null)
                 {
-                    return NotFound();
+                    existingMovie = await _dynamoDbContext.LoadAsync<Movie>(id, "User");
                 }
 
                 // Update only the editable fields
@@ -183,7 +184,7 @@ namespace movie_platform.Controllers
 
             if (movie == null)
             {
-                return NotFound();
+                movie = await _dynamoDbContext.LoadAsync<Movie>(movieId, "User");
             }
 
             return View(movie);
@@ -223,6 +224,11 @@ namespace movie_platform.Controllers
             // movie based on movieId
             var movie = await _dynamoDbContext.LoadAsync<Movie>(movieId, "Movie");
 
+            if (movie == null)
+            {
+                movie = await _dynamoDbContext.LoadAsync<Movie>(movieId, "User");
+            }
+
             // Add the rating to the movie
             movie.Ratings.Add(rate);
             movie.AverageRating = movie.Ratings.Count > 0 ? movie.Ratings.Average() : 0;
@@ -242,8 +248,7 @@ namespace movie_platform.Controllers
 
             if (movie == null)
             {
-                return NotFound();
-            }
+                movie = await _dynamoDbContext.LoadAsync<Movie>(movieId, "User");   }
 
             return View(movie);
         }
@@ -287,6 +292,12 @@ namespace movie_platform.Controllers
             };
 
             var movie = await _dynamoDbContext.LoadAsync<Movie>(movieId, "Movie");
+
+            if (movie == null)
+            {
+                movie = await _dynamoDbContext.LoadAsync<Movie>(movieId, "User");
+            }
+
             movie.Comments.Add(content);
             await _dynamoDbContext.SaveAsync(movie);
 
@@ -306,7 +317,7 @@ namespace movie_platform.Controllers
 
             if (movie == null)
             {
-                return NotFound();
+                movie = await _dynamoDbContext.LoadAsync<Movie>(movieId, "User");
             }
 
             // Generate a pre-signed URL for the movie file in S3
@@ -320,6 +331,42 @@ namespace movie_platform.Controllers
             string url = _s3Client.GetPreSignedURL(request);
 
             return Json(new { url });
+        }
+
+        // GET: Movie/Delete/5
+        [HttpGet]
+        [Route("Movie/Delete/{movieId}")]
+        public async Task<IActionResult> Delete(int? movieId)
+        {
+            if (movieId == null)
+            {
+                return NotFound();
+            }
+
+            var movie = await _dynamoDbContext.LoadAsync<Movie>(movieId, "User");
+
+            if (movie == null)
+            {
+                return NotFound();
+            }
+
+            return View(movie);
+        }
+
+        // POST: Movie/Delete/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Route("Movie/Delete/{movieId}")]
+        public async Task<IActionResult> DeleteConfirmed(int movieId)
+        {
+            var movie = await _dynamoDbContext.LoadAsync<Movie>(movieId, "User");
+
+            if (movie != null)
+            {
+                await _dynamoDbContext.DeleteAsync<Movie>(movieId, "User");
+            }
+
+            return RedirectToAction(nameof(Index));
         }
     }
 }

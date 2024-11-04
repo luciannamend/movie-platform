@@ -41,12 +41,15 @@
             <dd class="col-sm-10">
                 @Html.DisplayFor(model => model.AverageRating)
             </dd>
-
-            @* <dd><a asp-action="Download" asp-route-id="@Model?.MovieId">Download</a></dd> *@
-
-            <dd><a href="javascript:void(0);" id="downloadLink">Download</a></dd>
+            <dd>
+                <a href="javascript:void(0);" id="downloadLink">Download</a>
+            </dd>
         </dl>
 
+        @if (Model.EntryType == "User")
+        {
+            <a asp-action="Delete" asp-route-id="@Model.MovieId" class="btn btn-primary">Delete</a>
+        }
         
     </div>
     <div>
