@@ -5,13 +5,29 @@ using Microsoft.EntityFrameworkCore;
 using movie_platform.Models;
 using movie_platform.Services;
 using Amazon.S3;
+using Amazon;
+using Microsoft.Data.SqlClient;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container
 builder.Services.AddControllersWithViews();
+
+// Connection to RDS
 builder.Services.AddDbContext<MovieplatformdbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("Connection2RDS")));
+
+//builder.Configuration.AddSystemsManager("/movie-platform", new Amazon.Extensions.NETCore.Setup.AWSOptions
+//{
+//    Region = RegionEndpoint.APEast1
+//});
+
+//var connectionString = new SqlConnectionStringBuilder(builder.Configuration.GetConnectionString("Connection2RDS"));
+//connectionString.UserID = builder.Configuration["/db-user-admin"];
+//connectionString.Password = builder.Configuration["/db-password"];
+
+//builder.Services.AddDbContext<MovieplatformdbContext>(options =>
+//    options.UseSqlServer(connectionString.ConnectionString));
 
 // Configure DynamoDB
 builder.Services.AddSingleton<IAmazonDynamoDB>(sp =>
@@ -49,7 +65,7 @@ builder.Services.AddSingleton<IAmazonS3>(sp =>
 {
     var config = builder.Configuration;
     var awsCredentials = new BasicAWSCredentials(
-        config["AWS:AccessKey"], // if doesnt work, add new s3 access like AWSS3:AccessKey  
+        config["AWS:AccessKey"],
         config["AWS:SecretKey"]
     );
     var s3Config = new AmazonS3Config

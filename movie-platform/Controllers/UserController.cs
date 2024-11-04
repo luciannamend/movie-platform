@@ -147,7 +147,7 @@ namespace movie_platform.Controllers
 
             return View(user);
         }
-
+         
         // POST: User/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
