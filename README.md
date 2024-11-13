@@ -36,7 +36,8 @@ This is a web application designed to be a movie platform. Built with ASP.NET an
     
 **How to use**
 
- 1.Register and Log In: Users can register and log in to access the movie platform.
+ 1.Register and Log In: 
+   - Users can register and log in to access the movie platform.
  
  2.Manage Movies:
    - Add a movie, including metadata like title, genre, and release year.
