@@ -33,18 +33,18 @@ This is a web application designed to be a movie platform. Developed using ASP.N
     
 **How to use**
 
- 1 Register and Log In: Users can register and log in to access the movie platform.
+ 1.Register and Log In: Users can register and log in to access the movie platform.
  
- 2 Manage Movies:
+ 2.Manage Movies:
    - Add a movie, including metadata like title, genre, and release year.
    - Delete or modify movies (only available to the user who uploaded the movie).
    - Download any movie stored in the platform.
 
- 3 Comments and Ratings:
+ 3.Comments and Ratings:
    - Add comments and rate movies.
    - View a list of comments and the average rating on each movie’s page.
 
- 4 Search and Filter:
+ 4.Search and Filter:
    - Filter movies based on genre or ratings using the search functionality.
 
 
