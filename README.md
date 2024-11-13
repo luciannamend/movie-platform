@@ -1,4 +1,5 @@
 This is a web application designed to be a movie platform. Built with ASP.NET and hosted on AWS Elastic Beanstalk, it enables registered users to download, manage, rate, and comment on movies. Users can browse comments, leave their own reviews, and explore movies based on genre or ratings for a more interactive experience.
+
 **Features**
 
   1.User Authentication
